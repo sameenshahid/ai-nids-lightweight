@@ -1,4 +1,4 @@
-# === Imports ===
+ple# === Imports ===
 import torch
 import numpy as np
 import joblib
@@ -49,8 +49,8 @@ if not os.path.exists(log_file) or os.stat(log_file).st_size == 0:
 
 # === Utility Functions ===
 def send_email_alert(subject, body, to_email):
-    from_email = "sameenshahid126@gmail.com"
-    from_password = "ulaw dxcl bova jqeq"
+    from_email = "example@gmail.com"
+    from_password = "######"
     msg = MIMEMultipart()
     msg["From"], msg["To"], msg["Subject"] = from_email, to_email, subject
     msg.attach(MIMEText(body, "plain"))
@@ -121,7 +121,7 @@ def run_detection_loop(mode, source):
                             send_email_alert(
                                 f"NIDS Alert: {label}",
                                 f"Detected:\n\n{pkt[:120]}...\nConfidence: {conf[0]:.2f}",
-                                "sameenshahid570@gmail.com"
+                                "example@gmail.com"
                             )
 
                         with open(log_file, "a", newline="") as f:
