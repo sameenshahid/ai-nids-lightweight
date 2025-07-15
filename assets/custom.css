@@ -1,0 +1,13 @@
+body {
+    background-color: #f5f6fa;
+    font-family: "Segoe UI", sans-serif;
+}
+
+h1, h2 {
+    color: #2c3e50;
+}
+
+.dash-table-container .dash-spreadsheet-container {
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
