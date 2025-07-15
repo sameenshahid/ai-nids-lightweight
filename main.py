@@ -49,8 +49,8 @@ if not os.path.exists(log_file) or os.stat(log_file).st_size == 0:
 
 # === Utility Functions ===
 def send_email_alert(subject, body, to_email):
-    from_email = "####"
-    from_password = "#####"
+    from_email = "example@gmail.com"
+    from_password = "######"
     msg = MIMEMultipart()
     msg["From"], msg["To"], msg["Subject"] = from_email, to_email, subject
     msg.attach(MIMEText(body, "plain"))
@@ -121,7 +121,7 @@ def run_detection_loop(mode, source):
                             send_email_alert(
                                 f"NIDS Alert: {label}",
                                 f"Detected:\n\n{pkt[:120]}...\nConfidence: {conf[0]:.2f}",
-                                "example@email.com"
+                                "example@gmail.com"
                             )
 
                         with open(log_file, "a", newline="") as f:
@@ -141,12 +141,17 @@ def run_detection_loop(mode, source):
 detection_thread = threading.Thread(target=run_detection_loop, args=("live", "Wi-Fi"), daemon=True)
 detection_thread.start()
 
-# === DASH APP WITH LOGIN ===
 USER_CREDENTIALS = {"admin": "password123"}
 
-app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+external_stylesheets = [
+    dbc.themes.FLATLY,
+    "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+]
+
+app = Dash(__name__, external_stylesheets=external_stylesheets)
 app.title = "NIDS Threat Dashboard"
 
+# Global Layout
 app.layout = html.Div([
     dcc.Location(id="url"),
     dcc.Store(id='auth-status', storage_type='session'),
@@ -155,42 +160,49 @@ app.layout = html.Div([
             dbc.Container([
                 html.A([
                     dbc.Row([
-                        dbc.Col(html.Img(src="/assets/logo.png", height="40px")),
+                        dbc.Col(html.Img(src="/assets/logo.png", height="45px", style={'marginRight': '15px'})),
                         dbc.Col(dbc.NavbarBrand("AI-Powered NIDS", className="ms-2", style={
-                            'fontSize': '32px', 'fontWeight': 'bold', 'color': 'rgb(44, 62, 80)'})
-                        )
+                            'fontSize': '24px', 'fontWeight': '700', 'color': '#ffffff',
+                            'fontFamily': 'Poppins'}))
                     ], align="center", className="g-0")
-                ], href="#", style={"textDecoration": "none"})
+                ], href="#", style={"textDecoration": "none"}),
+
+                dbc.Button("Logout", id="logout-button", style={
+                    'borderRadius': '8px',
+                    'fontSize': '14px',
+                    'fontWeight': '600',
+                    'padding': '6px 14px',
+                    'backgroundColor': '#484848',
+                    'color': 'white',
+                    'border': 'none'
+                }, className='ms-auto')
             ]),
-            color="light",
-            dark=False,
-            style={'boxShadow': '0 2px 6px rgba(0,0,0,0.1)'}
+            color="dark", dark=True, style={'backgroundColor': '#20283E', 'padding': '8px 0'}
         ),
         html.Div(id="page-content")
     ])
 ], style={
-    'fontFamily': 'Segoe UI, sans-serif',
-    'backgroundColor': '#f0f4f8',
+    'fontFamily': 'Poppins, Segoe UI, sans-serif',
+    'backgroundColor': '#DADADA',
     'minHeight': '100vh',
     'padding': '0'
 })
 
+# Login Layout
 login_layout = dbc.Container([
     dbc.Row([
         dbc.Col([
             html.Div([
                 html.Img(src="/assets/logo.png", style={
-                    'width': '120px',
-                    'marginBottom': '20px',
-                    'filter': 'drop-shadow(0 4px 4px rgba(66, 133, 244, 0.3))'}),
-                html.H2("Secure Access", className="mb-3", style={'color': '#4285F4', 'fontWeight': 'bold'}),
-                html.H5("Login to NIDS Dashboard", className="mb-4"),
+                    'width': '120px', 'marginBottom': '20px',
+                    'filter': 'drop-shadow(0 4px 8px rgba(0,0,0,0.15))'}),
+                html.H2("Secure Access", className="mb-3", style={'color': '#000000', 'fontWeight': '700'}),
+                html.H5("Login to NIDS Dashboard", className="mb-4", style={'color': '#488A99'}),
                 dbc.Input(id="username", placeholder="Username", type="text", className="mb-3"),
                 dbc.Input(id="password", placeholder="Password", type="password", className="mb-3"),
-                dbc.Button("Login", id="login-button", color="primary", className="w-100", style={
-                    'backgroundColor': '#34A853',
-                    'border': 'none',
-                    'fontWeight': 'bold'
+                dbc.Button("Login", id="login-button", className="w-100", style={
+                    'backgroundColor': 'rgb(72, 72, 72)', 'border': 'none',
+                    'fontWeight': '600', 'fontSize': '16px'
                 }),
                 html.Div(id="login-alert", className="mt-3")
             ], style={
@@ -205,109 +217,120 @@ login_layout = dbc.Container([
     ], justify="center")
 ])
 
-# dashboard_layout remains unchanged from previous version
-
-
+# Dashboard Layout
 dashboard_layout = html.Div([
-    html.Div([
-        dbc.Button("Logout", id="logout-button", color="primary", className="mb-3", style={
-            'borderRadius': '20px',
-            'float': 'right',
-            'marginRight': '20px'
-        })
-    ]),
 
-    html.H1("NIDS Threat Dashboard", style={
+    html.H1("Threat Analysis Dashboard", style={
         'textAlign': 'center',
-        'fontWeight': 'bold',
-        'color': '#2c3e50',
+        'fontWeight': '700',
+        'color': '#000000',
         'marginTop': '20px',
-        'marginBottom': '30px',
-        'fontSize': '36px'
+        'marginBottom': '15px',
+        'fontSize': '30px'
     }),
 
-    html.Hr(style={'borderTop': '1px solid #ccc'}),
+    html.Hr(style={'borderTop': '1px solid #999'}),
 
     dbc.Row([
-        dbc.Col(dbc.Card([
-            dbc.CardBody([
-                html.H5("CPU Usage", className="card-title"),
-                html.P(id='cpu-usage', className="card-text", style={'fontWeight': 'bold', 'fontSize': '20px', 'color': '#007bff'})
-            ])
-        ], color="light", inverse=False), width=6),
-
-        dbc.Col(dbc.Card([
-            dbc.CardBody([
-                html.H5("Memory Usage", className="card-title"),
-                html.P(id='memory-usage', className="card-text", style={'fontWeight': 'bold', 'fontSize': '20px', 'color': '#28a745'})
-            ])
-        ], color="light", inverse=False), width=6)
-    ], className="mb-4"),
+        dbc.Col(
+            dbc.Card([
+                dbc.CardBody([
+                    html.H5("CPU Usage", style={'fontSize': '16px', 'textAlign': 'center', 'color': '#484848'}),
+                    html.P(id='cpu-usage', style={
+                        'fontWeight': '700', 'fontSize': '26px', 'color': '#DBAE58', 'textAlign': 'center'})
+                ])
+            ], style={'backgroundColor': '#ffffff', 'borderRadius': '14px',
+                      'boxShadow': '0 3px 8px rgba(0,0,0,0.1)', 'padding': '10px'}),
+            width=6
+        ),
+        dbc.Col(
+            dbc.Card([
+                dbc.CardBody([
+                    html.H5("Memory Usage", style={'fontSize': '16px', 'textAlign': 'center', 'color': '#484848'}),
+                    html.P(id='memory-usage', style={
+                        'fontWeight': '700', 'fontSize': '26px', 'color': '#488A99', 'textAlign': 'center'})
+                ])
+            ], style={'backgroundColor': '#ffffff', 'borderRadius': '14px',
+                      'boxShadow': '0 3px 8px rgba(0,0,0,0.1)', 'padding': '10px'}),
+            width=6
+        ),
+    ], className="mb-4", style={'margin': '0 5%'}),
 
     dcc.Interval(id='interval-component', interval=5000, n_intervals=0),
 
     html.Div([
-        html.Label("Minimum Confidence Threshold:", style={'fontWeight': 'bold'}),
-        dcc.Slider(id='confidence-slider', min=0.0, max=1.0, step=0.01,
-                   marks={0.0: '0.0', 0.5: '0.5', 0.75: '0.75', 1.0: '1.0'}, value=0.0),
+        html.Label("Confidence Threshold", style={
+            'fontWeight': '600', 'color': '#000000', 'fontSize': '15px', 'marginBottom': '8px'
+        }),
+        dcc.Slider(id='confidence-slider', min=0.0, max=1.0, step=0.01, marks={
+            0.0: '0', 0.5: '0.5', 0.75: '0.75', 1.0: '1.0'
+        }, value=0.0, tooltip={"placement": "bottom", "always_visible": False}, updatemode='drag'),
         html.Br(),
-        html.Label("Show Only High Severity (Confidence ≥ 0.8):", style={'fontWeight': 'bold'}),
-        dcc.Checklist(id='severity-filter', options=[{'label': 'Enable', 'value': 'high'}], value=[])
+        dbc.Checklist(
+            options=[{'label': ' High Severity Only (≥ 0.8)', 'value': 'high'}],
+            value=[], id='severity-filter', switch=True,
+            style={'fontWeight': '600', 'color': '#000000', 'fontSize': '14px'}
+        )
     ], style={
-        'backgroundColor': '#ffffff',
-        'padding': '20px',
-        'borderRadius': '10px',
-        'boxShadow': '0 2px 6px rgba(0,0,0,0.1)',
-        'marginBottom': '20px',
-        'width': '60%',
-        'margin': 'auto'
+        'backgroundColor': '#ffffff', 'padding': '18px',
+        'borderRadius': '14px', 'boxShadow': '0 3px 10px rgba(0,0,0,0.15)',
+        'marginBottom': '30px', 'width': '50%', 'margin': '20px auto'
     }),
 
-    dbc.Card([
-        dbc.CardHeader("Threat Type Counts", style={'fontWeight': 'bold'}),
-        dbc.CardBody([
-            dcc.Graph(id='attack-bar-chart')
-        ])
-    ], className="mb-4", style={'backgroundColor': 'white', 'boxShadow': '0 2px 6px rgba(0,0,0,0.1)', 'borderRadius': '10px'}),
+    dbc.Row([
+        dbc.Col(
+            dbc.Card([
+                dbc.CardHeader("Threat Type Counts", style={
+                    'fontWeight': '700', 'textAlign': 'center', 'backgroundColor': '#20283E', 'color': 'white'}),
+                dbc.CardBody([dcc.Graph(id='attack-bar-chart')])
+            ], style={'backgroundColor': '#ffffff', 'borderRadius': '14px',
+                      'boxShadow': '0 3px 8px rgba(0,0,0,0.1)'}),
+            width=6
+        ),
+        dbc.Col(
+            dbc.Card([
+                dbc.CardHeader("Threat Trends Over Time", style={
+                    'fontWeight': '700', 'textAlign': 'center', 'backgroundColor': '#20283E', 'color': 'white'}),
+                dbc.CardBody([dcc.Graph(id='attack-time-series')])
+            ], style={'backgroundColor': '#ffffff', 'borderRadius': '14px',
+                      'boxShadow': '0 3px 8px rgba(0,0,0,0.1)'}),
+            width=6
+        ),
+    ], className="mb-4", style={'margin': '0 5%'}),
 
-    dbc.Card([
-        dbc.CardHeader("Threat Trends Over Time", style={'fontWeight': 'bold'}),
-        dbc.CardBody([
-            dcc.Graph(id='attack-time-series')
-        ])
-    ], className="mb-4", style={'backgroundColor': 'white', 'boxShadow': '0 2px 6px rgba(0,0,0,0.1)', 'borderRadius': '10px'}),
-
-    dbc.Card([
-        dbc.CardHeader("Recent Detections", style={'fontWeight': 'bold'}),
-        dbc.CardBody([
-            dash_table.DataTable(
-                id='recent-attacks-table',
-                columns=[{"name": i, "id": i} for i in ["Timestamp", "Label", "Confidence", "Packet_Summary"]],
-                style_table={'overflowX': 'auto'},
-                style_cell={
-                    'textAlign': 'center',
-                    'padding': '10px',
-                    'fontFamily': 'Segoe UI',
-                    'fontSize': '14px',
-                    'backgroundColor': '#fefefe'
-                },
-                style_header={
-                    'backgroundColor': '#2c3e50',
-                    'color': 'white',
-                    'fontWeight': 'bold'
-                },
-                style_data_conditional=[
-                    {
-                        'if': {'row_index': 'odd'},
-                        'backgroundColor': '#f7f7f7'
-                    }
-                ],
-                page_size=10
-            )
-        ])
-    ], style={'backgroundColor': 'white', 'boxShadow': '0 2px 6px rgba(0,0,0,0.1)', 'borderRadius': '10px'})
+    html.Div([
+        dbc.Card([
+            dbc.CardHeader("Recent Detections", style={
+                'fontWeight': '700', 'textAlign': 'center',
+                'backgroundColor': '#20283E', 'color': 'white'
+            }),
+            dbc.CardBody([
+                dash_table.DataTable(
+                    id='recent-attacks-table',
+                    columns=[{"name": i, "id": i} for i in ["Timestamp", "Label", "Confidence", "Packet_Summary"]],
+                    style_table={'overflowX': 'auto'},
+                    style_cell={
+                        'textAlign': 'center',
+                        'padding': '10px',
+                        'fontFamily': 'Poppins',
+                        'fontSize': '13px',
+                        'backgroundColor': '#fafafa'
+                    },
+                    style_header={
+                        'backgroundColor': '#000000',
+                        'color': 'white',
+                        'fontWeight': 'bold'
+                    },
+                    style_data_conditional=[
+                        {'if': {'row_index': 'odd'}, 'backgroundColor': '#DADADA'}
+                    ],
+                    page_size=10
+                )
+            ])
+        ], style={'backgroundColor': '#ffffff', 'borderRadius': '14px',
+                  'boxShadow': '0 3px 10px rgba(0,0,0,0.1)'})
+    ], style={'width': '90%', 'margin': 'auto', 'marginBottom': '40px'})
 ])
-
 
 # === Callbacks ===
 @app.callback(
@@ -354,7 +377,6 @@ def logout(n_clicks):
     State('severity-filter', 'value')
 )
 def update_dashboard(n, confidence_threshold, severity_filter):
-    # CPU and Memory Usage
     cpu_percent = psutil.cpu_percent(interval=None)
     mem = psutil.virtual_memory()
     mem_percent = mem.percent
@@ -373,10 +395,30 @@ def update_dashboard(n, confidence_threshold, severity_filter):
 
     label_counts = df['Label'].value_counts().reset_index()
     label_counts.columns = ['Label', 'count']
-    bar_fig = px.bar(label_counts, x='Label', y='count', title='Detected Attacks by Type')
 
+    # Updated color palette (new one)
+    colors = ['#7E909A', '#1C4E80', '#A5D8DD', '#EA6A47', '#0091D5']
+
+    # Bar Chart
+    bar_fig = px.bar(
+        label_counts,
+        x='Label',
+        y='count',
+        title='Detected Attacks by Type',
+        color='Label',
+        color_discrete_sequence=colors
+    )
+
+    # Time Series Chart
     trend_df = df.groupby([pd.Grouper(key='Timestamp', freq='1min'), 'Label']).size().reset_index(name='count')
-    time_fig = px.line(trend_df, x='Timestamp', y='count', color='Label', title='Attack Frequency Over Time')
+    time_fig = px.line(
+        trend_df,
+        x='Timestamp',
+        y='count',
+        color='Label',
+        title='Attack Frequency Over Time',
+        color_discrete_sequence=colors
+    )
 
     recent_data = df.sort_values(by='Timestamp', ascending=False).head(10).to_dict('records')
 
